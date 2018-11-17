@@ -3,6 +3,7 @@ const { Client, RichEmbed } = require('discord.js');
 let guilds = {}
 let scrims = {}
 
+// access: 0 = everyone; access: 1 = moderators; access: 2 = administrators;
 exports.commands = {
 	// everyone
 	help:{access:0,desc:"shows all available commands"},
@@ -13,14 +14,14 @@ exports.commands = {
 exports.newGuild = function(guild){
 	if (guilds[guild.id] != undefined) return
 	guilds[guild.id] = {
-		setup:true,
+		setup:false,
 		prefix:"!",
 		modrole:"",
 		mutedrole:"",
 		scrimrole:"",
 		hostrole:"",
-		digitchan:"3digits",
-		countdownchan:"scrim countdown",
+		digitchan:"",
+		countdownchan:"",
 	}
 	//if (guild.systemChannel != null) guild.systemChannel.send("Settings need to be set up, for bot to be fully functional. Type !setup for further instructions!")
 }
@@ -135,8 +136,8 @@ exports.startScrim = function(guild,host,type,time){
 }
 
 exports.stopScrim = function(guild){
-	clearTimeout(scrims[guild.id].timer)
-	clearTimeout(scrims[guild.id].timer2)
+	if (scrims[guild.id].timer) clearTimeout(scrims[guild.id].timer)
+	if (scrims[guild.id].timer2) clearTimeout(scrims[guild.id].timer2)
 	clearInterval(scrims[guild.id].playerinterval)
 	delete scrims[guild.id]
 }

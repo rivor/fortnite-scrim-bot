@@ -6,7 +6,6 @@ const commands_path = require("path").join(__dirname, "commands");
 
 const _exports = require("./exports.js");
 
-// access: 0 = everyone; access: 1 = moderators; access: 2 = administrators;
 let tempcommands = {};
 
 fs.readdirSync(commands_path).forEach(function(file) {
@@ -14,30 +13,33 @@ fs.readdirSync(commands_path).forEach(function(file) {
 	tempcommands[command] = require("./commands/"+command+".js").main;
 });
 
-let isAdmin = function(member) {
-	if (member.hasPermission("ADMINISTRATOR")) return true;
-	return false;
-};
-
-let isMod = function(member) {
-	let role = _exports.getData(member.guild).modrole;
-	if (isAdmin(member)) return true;
-	if (role != "") {
-		let role_moderator = member.guild.roles.find("name",role);
-		if (member.roles.has(role_moderator.id)) return true;
-	};
-	return false;
-};
-
-let isHoster = function(member) {
-	let role = _exports.getData(member.guild).hostrole;
-	if (isAdmin(member)) return true;
-	if (role != "") {
-		let role_hoster = member.guild.roles.find("name",role);
-		if (member.roles.has(role_hoster.id)) return true;
-	};
-	return false;
-};
+let hasAccess = function(access,member) {
+	let role;
+	let isAdmin = member.hasPermission("ADMINISTRATOR");
+	switch(access) {
+		case 0:
+			return true;
+		case 1:
+			role = _exports.getData(member.guild).modrole;
+			if (isAdmin) return true;
+			if (role != "") {
+				let modrole = member.guild.roles.find("name",role);
+				if (modrole) if (member.roles.has(modrole.id)) return true;
+			};
+			return false;
+		case 2:
+			role = _exports.getData(member.guild).hostrole;
+			if (isAdmin) return true;
+			if (role != "") {
+				let hostrole = member.guild.roles.find("name",role);
+				if (hostrole) if (member.roles.has(hostrole.id)) return true;
+			};
+			return false;
+		case 3:
+			if (isAdmin) return true;
+			return false;
+	}
+}
 
 client.on("ready", () => {
 	console.log(`connected as ${client.user.tag}`);
@@ -56,10 +58,6 @@ client.on('guildDelete', guild => {
 	_exports.delGuild(guild);
 });
 
-client.on('guildMemberAdd', member => {
-	//
-});
-
 client.on("message", msg => {
 	if (msg.author.bot) return;
   
@@ -74,14 +72,11 @@ client.on("message", msg => {
 			let access = _exports.commands[command].access;
 			if (args[0] == command) {
 				found = true;
-				if (access == 1 && !isMod(msg.member)) {
+				if (hasAccess(access,msg.member)) {
+					tempcommands[command](msg,...args);
+				} else {
 					return msg.reply(no_perm_str);
-				} else if (access == 2 && !isHoster(msg.member)) {
-					return msg.reply(no_perm_str);
-				} else if (access == 3 && !isAdmin(msg.member)) {
-					return msg.reply(no_perm_str);
-				};
-				tempcommands[command](msg,...args);
+				}
 			};
 		});
 		if (!found) {
