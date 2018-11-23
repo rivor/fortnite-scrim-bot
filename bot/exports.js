@@ -14,14 +14,14 @@ exports.commands = {
 exports.newGuild = function(guild){
 	if (guilds[guild.id] != undefined) return
 	guilds[guild.id] = {
-		setup:true,
+		setup:false,
 		prefix:"!",
 		modrole:"",
 		mutedrole:"",
 		scrimrole:"",
-		hostrole:"123",
-		digitchan:"3digits",
-		countdownchan:"scrim countdown",
+		hostrole:"",
+		digitchan:"",
+		countdownchan:"",
 	}
 	//if (guild.systemChannel != null) guild.systemChannel.send("Settings need to be set up, for bot to be fully functional. Type !setup for further instructions!")
 }
