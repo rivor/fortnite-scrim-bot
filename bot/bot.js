@@ -1,6 +1,8 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
+client.login(""); // your bot token goes in between "<token>"
+
 const fs = require('fs');
 const commands_path = require("path").join(__dirname, "commands");
 
@@ -84,8 +86,9 @@ client.on("message", msg => {
 		};
 	} else if (msg.channel.name == data.digitchan) {
 		let scrimData = _exports.getScrimData(msg.guild)
-		if (scrimData && scrimData.codes) _exports.setScrimData(msg.guild,msg.author,msg.content);
+		if (scrimData && scrimData.codes) {
+			_exports.setScrimData(msg.guild,msg.author,msg.content);
+			msg.delete();
+		};
 	}
 });
-
-client.login("");
