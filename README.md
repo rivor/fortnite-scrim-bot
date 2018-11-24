@@ -16,4 +16,4 @@ It's finished... I think :D! I mean, it has everything now, it saves all okey (t
 
 # Author
 Me, i made this. Known as chocoly, rivor, and i have other nicknames but i think this will be enough :D
-If you want to donate, which would be very appreciated. Then contact me on discord chocolate#9115 or here, on github.
+If you want to donate, which would be very appreciated. Then contact me on discord chocolate#9115 (DO NOT ADD ME FOR ANY ASSISTENT FOR THE BOT, GOOGLE IT OR MAKE A TOPIC IN ISSUES TAB) or here, on github.
