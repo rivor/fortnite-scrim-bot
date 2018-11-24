@@ -40,7 +40,9 @@ exports.newGuild = function(guild){
 }
 
 exports.delGuild = function(guild){
-	delete guilds[guild.id]
+	db.run("DELETE FROM guilds WHERE id = ?", guild.id, (err, result) => {
+		if (err) return console.log(err.message);
+	});
 }
 
 exports.setData = function(guild,newData){
