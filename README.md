@@ -7,8 +7,8 @@ It's simple!!! :D
 - Install it
 - Clone this repo or download it
 - Open cmd or terminal (or whatever)
-- Navigate to this repo's folder
-- Type npm install
+- Navigate to folder where you cloned or downloaded this bot in cmd or terminal
+- Type npm install (make sure in that folder is package.json file)
 - ... and you're done! Next just execute bot.js file in bot folder with 'node bot/bot.js' oh btw, don't forget to replace with your own token in bot.js file.
 
 # Progress
