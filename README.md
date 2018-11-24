@@ -1,5 +1,19 @@
 # Fortnite Scrim bot for discord
 scrim/snipe bot for discord built with node.js and discord.js
 
-# Work in Progress
-I still have few things left to do + maybe some extra commands if someone would want to. It's fully working right now, it just doesn't save server settings. Because of that, each time you restart you'll need to set up for new unless you just hard code it in files. You can do that in exports.js file.
+# Installation
+It's simple!!! :D
+ Download Node.js
+ Install it
+ Clone this repo or download it
+ Open cmd or terminal (or whatever)
+ Navigate to this repo's folder
+ Type npm install
+ ... and you're done! Next just execute bot.js file in bot folder with 'node bot/bot.js' oh btw, don't forget to replace with your own token in bot.js file.
+
+# Progress
+It's finished... I think :D! I mean, it has everything now, it saves all okey (tested locally only, if you find bug, report it then).
+
+# Author
+chocoly, rivor, i have other nicknames as well but this but i think this is enough :D
+If you want to donate, which would be very appreciated. Then contact me.

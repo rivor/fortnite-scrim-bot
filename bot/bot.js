@@ -1,7 +1,7 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 
-client.login(""); // your bot token goes in between "<token>"
+client.login(""); // your bot token goes in bracke "<token>"
 
 const fs = require('fs');
 const commands_path = require("path").join(__dirname, "commands");
@@ -22,21 +22,25 @@ let hasAccess = function(access,member) {
 		case 0:
 			return true;
 		case 1:
-			role = _exports.getData(member.guild).modrole;
-			if (isAdmin) return true;
-			if (role != "") {
-				let modrole = member.guild.roles.find("name",role);
-				if (modrole) if (member.roles.has(modrole.id)) return true;
-			};
-			return false;
+			_exports.getData(member.guild,(data) => {
+				role = data.modrole;
+				if (isAdmin) return true;
+				if (role != "") {
+					let modrole = member.guild.roles.find("name",role);
+					if (modrole) if (member.roles.has(modrole.id)) return true;
+				};
+				return false;
+			})
 		case 2:
-			role = _exports.getData(member.guild).hostrole;
-			if (isAdmin) return true;
-			if (role != "") {
-				let hostrole = member.guild.roles.find("name",role);
-				if (hostrole) if (member.roles.has(hostrole.id)) return true;
-			};
-			return false;
+			_exports.getData(member.guild,(data) => {
+				role = data.hostrole;
+				if (isAdmin) return true;
+				if (role != "") {
+					let hostrole = member.guild.roles.find("name",role);
+					if (hostrole) if (member.roles.has(hostrole.id)) return true;
+				};
+				return false;
+			})
 		case 3:
 			if (isAdmin) return true;
 			return false;
@@ -63,32 +67,33 @@ client.on('guildDelete', guild => {
 client.on("message", msg => {
 	if (msg.author.bot) return;
   
-  	let data = _exports.getData(msg.guild);
-  	let prefix = data.prefix
-	if (msg.content.startsWith(prefix)) {
-		let found = false;
-		let args = msg.content.substring(1);
-		let no_perm_str = "You don't have access to this command!";
-		args = args.split(" ");
-		Object.keys(_exports.commands).forEach(function(command){
-			let access = _exports.commands[command].access;
-			if (args[0] == command) {
-				found = true;
-				if (hasAccess(access,msg.member)) {
-					tempcommands[command](msg,...args);
-				} else {
-					return msg.reply(no_perm_str);
-				}
+  	_exports.getData(msg.guild,(data) => {
+	  	let prefix = data.prefix
+		if (msg.content.startsWith(prefix)) {
+			let found = false;
+			let args = msg.content.substring(1);
+			let no_perm_str = "You don't have access to this command!";
+			args = args.split(" ");
+			Object.keys(_exports.commands).forEach(function(command){
+				let access = _exports.commands[command].access;
+				if (args[0] == command) {
+					found = true;
+					if (hasAccess(access,msg.member)) {
+						tempcommands[command](msg,...args);
+					} else {
+						return msg.reply(no_perm_str);
+					}
+				};
+			});
+			if (!found) {
+				msg.reply("command ``"+prefix+""+args[0]+"`` not found! Type ``"+prefix+"help`` to see all commands.");
 			};
-		});
-		if (!found) {
-			msg.reply("command ``"+prefix+""+args[0]+"`` not found! Type ``"+prefix+"help`` to see all commands.");
-		};
-	} else if (msg.channel.name == data.digitchan) {
-		let scrimData = _exports.getScrimData(msg.guild)
-		if (scrimData && scrimData.codes) {
-			_exports.setScrimData(msg.guild,msg.author,msg.content);
-			msg.delete();
-		};
-	}
+		} else if (msg.channel.name == data.digitchan) {
+			let scrimData = _exports.getScrimData(msg.guild)
+			if (scrimData && scrimData.codes) {
+				_exports.setScrimData(msg.guild,msg.author,msg.content);
+				msg.delete();
+			};
+		}
+  	});
 });

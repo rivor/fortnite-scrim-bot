@@ -1,6 +1,12 @@
 const { Client, RichEmbed } = require('discord.js');
+const sqlite3 = require('sqlite3').verbose();
 
-let guilds = {}
+const db = new sqlite3.Database('bot/guilds.db');
+
+db.serialize(() => {
+	db.run("CREATE TABLE IF NOT EXISTS guilds (id TEXT, data TEXT)");
+});
+
 let scrims = {}
 
 // access: 0 = everyone; access: 1 = moderators; 2 = scrim hoster; access: 3 = administrators;
@@ -12,51 +18,58 @@ exports.commands = {
 };
 
 exports.newGuild = function(guild){
-	if (guilds[guild.id] != undefined) return
-	guilds[guild.id] = {
-		setup:false,
-		prefix:"!",
-		modrole:"",
-		mutedrole:"",
-		scrimrole:"",
-		hostrole:"",
-		digitchan:"",
-		countdownchan:"",
-	}
-	//if (guild.systemChannel != null) guild.systemChannel.send("Settings need to be set up, for bot to be fully functional. Type !setup for further instructions!")
+	db.get("SELECT * FROM guilds WHERE id = ?", guild.id, (err, result) => {
+		if (err) return console.log(err.message);
+		if (!result) {
+			let data = {
+				setup:false,
+				prefix:"!",
+				modrole:"",
+				mutedrole:"",
+				scrimrole:"",
+				hostrole:"",
+				digitchan:"",
+				countdownchan:"",
+			}
+			db.run(`INSERT INTO guilds VALUES(?,?)`, guild.id, JSON.stringify(data), function(err) {
+				if (err) return console.log(err.message)
+				console.log(`guild ${guild.id} added to database`);
+			});
+		}
+	})
 }
 
 exports.delGuild = function(guild){
 	delete guilds[guild.id]
 }
 
-exports.setData = function(guild,prefix,modrole,mutedrole,scrimrole,hostrole,digitchan,countdownchan){
-	let data;
-	if (typeof prefix === "object") {
-		data = prefix;
-	}
-	if (data != undefined) {
-		Object.keys(data).forEach(function(key){
-			if (guilds[guild.id][key] != undefined) guilds[guild.id][key] = data[key];
-		})
-	} else {
-		if (prefix != undefined) guilds[guild.id].prefix = prefix;
-		if (modrole != undefined) guilds[guild.id].modrole = modrole;
-		if (mutedrole != undefined) guilds[guild.id].mutedrole = mutedrole;
-		if (scrimrole != undefined) guilds[guild.id].scrimrole = scrimrole;
-		if (hostrole != undefined) guilds[guild.id].hostrole = hostrole;
-		if (digitchan != undefined) guilds[guild.id].digitchan = digitchan;
-		if (countdownchan != undefined) guilds[guild.id].countdownchan = countdownchan;
-	}
-	if (guilds[guild.id].hostrole != "" && guilds[guild.id].digitchan != "" && guilds[guild.id].countdownchan != "") {
-		guilds[guild.id].setup = true;
-	} else {
-		guilds[guild.id].setup = false;
-	}
+exports.setData = function(guild,newData){
+	exports.getData(guild,(data) => {
+		if (typeof newData == "object") {
+			Object.keys(newData).forEach(function(key){
+				if (data[key] != undefined) data[key] = newData[key];
+			})
+		}
+
+		if (data.hostrole != "" && data.digitchan != "" && data.countdownchan != "") {
+			data.setup = true;
+		} else {
+			data.setup = false;
+		}
+
+		db.run("UPDATE guilds SET data = ? WHERE id = ?", JSON.stringify(data), guild.id, (err, result) => {
+			if (err) return console.log(err.message);
+		});
+	})
 }
 
-exports.getData = function(guild){
-	return guilds[guild.id]
+exports.getData = function(guild,callback){
+	db.get("SELECT * FROM guilds WHERE id = ?", guild.id, (err, result) => {
+		if (err) return console.log(err.message);
+		if (result) {
+			callback(JSON.parse(result.data));
+		}
+	})
 }
 
 exports.one = function(val) {
@@ -83,13 +96,15 @@ let updatelist = function(guild,last) {
 			embed.addField(key+" ("+Object.keys(codeobj).length+" players)",user_str,true)
 		})
 
-		let channel = guild.channels.find(channel => channel.name === guilds[guild.id].digitchan);
-		if (scrims[guild.id].message) {
-			channel.fetchMessage(scrims[guild.id].message)
-				.then(msg => {
-					msg.edit(embed);
-				});
-		}
+		exports.getData(guild,(data) => {
+			let channel = guild.channels.find(channel => channel.name === data.digitchan);
+			if (scrims[guild.id].message) {
+				channel.fetchMessage(scrims[guild.id].message)
+					.then(msg => {
+						msg.edit(embed);
+					});
+			}
+		})
 	} else {
 		const embed = new RichEmbed()
 			.setColor(0xc1d9ff)
@@ -108,18 +123,20 @@ let updatelist = function(guild,last) {
 			embed.addField(key+" ("+Object.keys(codeobj).length+" players)",user_str,true)
 		})
 
-		let channel = guild.channels.find(channel => channel.name === guilds[guild.id].digitchan);
-		if (scrims[guild.id].message === false) {
-			channel.send(embed)
-				.then(msg => {
-					scrims[guild.id].message = msg.id;
-				});
-		} else {
-			channel.fetchMessage(scrims[guild.id].message)
-				.then(msg => {
-					msg.edit(embed);
-				});
-		}
+		exports.getData(guild,(data) => {
+			let channel = guild.channels.find(channel => channel.name === data.digitchan);
+			if (scrims[guild.id].message === false) {
+				channel.send(embed)
+					.then(msg => {
+						scrims[guild.id].message = msg.id;
+					});
+			} else {
+				channel.fetchMessage(scrims[guild.id].message)
+					.then(msg => {
+						msg.edit(embed);
+					});
+			}
+		})
 	}
 }
 
@@ -147,19 +164,21 @@ exports.startScrim = function(guild,host,type,time){
 		.addField("Host",host,true)
 		.addField("Instructions","Countdown will be made in countdown channel, where you'll need to ready up on go. First be sure to have content loaded in game, after that wait for further instructions.",false)
 	
-	let channel1 = guild.channels.find(channel => channel.name === guilds[guild.id].digitchan);
-	let channel2 = guild.channels.find(channel => channel.name === guilds[guild.id].countdownchan);
-	if (channel1 && channel2) {
-		channel1.send(embed)
-		scrims[guild.id] = {
-			timer:setTimeout(function(){
-				startgame(guild,channel1,channel2);
-			}, time*60000),
-			timer2:setTimeout(function(){
-				updatelist(guild,true);
-			}, 1*60000),
+	exports.getData(guild,(data) => {
+		let channel1 = guild.channels.find(channel => channel.name === data.digitchan);
+		let channel2 = guild.channels.find(channel => channel.name === data.countdownchan);
+		if (channel1 && channel2) {
+			channel1.send(embed)
+			scrims[guild.id] = {
+				timer:setTimeout(function(){
+					startgame(guild,channel1,channel2);
+				}, time*60000),
+				timer2:setTimeout(function(){
+					updatelist(guild,true);
+				}, 1*60000),
+			};
 		};
-	};
+	})
 }
 
 exports.stopScrim = function(guild){
