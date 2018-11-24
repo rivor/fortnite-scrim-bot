@@ -15,5 +15,5 @@ It's simple!!! :D
 It's finished... I think :D! I mean, it has everything now, it saves all okey (tested locally only, if you find bug, report it then).
 
 # Author
-chocoly, rivor, i have other nicknames as well but i think this will be enough :D
+Me, i made this. Known as chocoly, rivor, and i have other nicknames but i think this will be enough :D
 If you want to donate, which would be very appreciated. Then contact me.
