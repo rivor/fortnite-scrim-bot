@@ -89,15 +89,15 @@ let updatelist = function(guild,last) {
 		Object.keys(scrims[guild.id].codedata).forEach(function(key){
 			let codeobj = scrims[guild.id].codedata[key];
 			let user_str = "";
-			Object.keys(scrims[guild.id].codedata[key]).every(function(key2,count){
-				let user = scrims[guild.id].codedata[key][key2];
-				user_str = user_str+user+"\n"
-				if (count >= 15) {
-					if (count > 15) user_str = user_str+"and more...";
-					return false;
+			let amount = Object.keys(codeobj).length;
+			Object.keys(scrims[guild.id].codedata[key]).forEach(function(key2,count){
+				if (count <= 15) {
+					let user = scrims[guild.id].codedata[key][key2];
+					user_str = user_str+user+"\n"
+					if (amount > 15 && count == 15) user_str = user_str+"and more...";
 				};
 			})
-			embed.addField(key+" ("+Object.keys(codeobj).length+" players)",user_str,true)
+			embed.addField(key+" ("+amount+" players)",user_str,true)
 		})
 
 		exports.getData(guild,(data) => {
@@ -116,15 +116,15 @@ let updatelist = function(guild,last) {
 		Object.keys(scrims[guild.id].codedata).forEach(function(key){
 			let codeobj = scrims[guild.id].codedata[key];
 			let user_str = "";
-			Object.keys(scrims[guild.id].codedata[key]).every(function(key2,count){
-				let user = scrims[guild.id].codedata[key][key2];
-				user_str = user_str+user+"\n"
-				if (count >= 15) {
-					if (count > 15) user_str = user_str+"and more...";
-					return false;
+			let amount = Object.keys(codeobj).length;
+			Object.keys(scrims[guild.id].codedata[key]).forEach(function(key2,count){
+				if (count <= 15) {
+					let user = scrims[guild.id].codedata[key][key2];
+					user_str = user_str+user+"\n"
+					if (amount > 15 && count == 15) user_str = user_str+"and more...";
 				};
 			})
-			embed.addField(key+" ("+Object.keys(codeobj).length+" players)",user_str,true)
+			embed.addField(key+" ("+amount+" players)",user_str,true)
 		})
 
 		exports.getData(guild,(data) => {
@@ -179,7 +179,7 @@ exports.startScrim = function(guild,host,type,time){
 				}, time*60000),
 				timer2:setTimeout(function(){
 					updatelist(guild,true);
-				}, 1*60000),
+				}, 3*60000),
 			};
 		};
 	})
