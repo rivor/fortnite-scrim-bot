@@ -1,7 +1,8 @@
 const { Client, RichEmbed } = require('discord.js');
-const sqlite3 = require('sqlite3').verbose();
 
-const db = new sqlite3.Database('bot/guilds.db');
+const pathLink = require('path').resolve(__dirname,"guilds.db")
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database(pathLink);
 
 db.serialize(() => {
 	db.run("CREATE TABLE IF NOT EXISTS guilds (id TEXT, data TEXT)");
@@ -42,6 +43,7 @@ exports.newGuild = function(guild){
 exports.delGuild = function(guild){
 	db.run("DELETE FROM guilds WHERE id = ?", guild.id, (err, result) => {
 		if (err) return console.log(err.message);
+		console.log(`guild ${guild.id} removed from database`);
 	});
 }
 
